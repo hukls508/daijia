@@ -173,6 +173,23 @@ body{
 .data-num{font-size:28px;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums}
 .data-label{font-size:12px;color:var(--text2);margin-top:5px}
 
+/* GPS */
+.gps-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#f0fdf4;border-radius:14px;margin-bottom:12px;border:1px solid #bbf7d0}
+.gps-left{display:flex;align-items:center;gap:10px}
+.gps-icon{font-size:22px}
+.gps-title{font-size:14px;font-weight:700;color:#166534}
+.gps-sub{font-size:11px;color:#65a30d;margin-top:2px}
+.gps-switch{position:relative;width:46px;height:26px;flex-shrink:0}
+.gps-switch input{opacity:0;width:0;height:0}
+.gps-slider{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:26px;transition:.3s}
+.gps-slider:before{content:"";position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.gps-switch input:checked+.gps-slider{background:#22c55e}
+.gps-switch input:checked+.gps-slider:before{transform:translateX(20px)}
+.gps-detail{display:flex;gap:8px;margin-bottom:12px}
+.gps-item{flex:1;background:#f8fafc;border-radius:10px;padding:10px;text-align:center}
+.gps-item span{display:block;font-size:11px;color:#64748b}
+.gps-item strong{display:block;font-size:14px;color:#0f172a;margin-top:3px;font-variant-numeric:tabular-nums}
+
 /* 操作按钮 */
 .wait-btn{
   width:100%;padding:16px;border:2px solid var(--primary);border-radius:14px;
@@ -407,6 +424,25 @@ body{
       </div>
     </div>
 
+    <div class="gps-bar" id="gps-bar">
+      <div class="gps-left">
+        <span class="gps-icon" id="gps-icon">📍</span>
+        <div>
+          <div class="gps-title">GPS计里程 <span id="gps-status" style="color:#999">未开启</span></div>
+          <div class="gps-sub" id="gps-sub">开启后自动记录行驶公里数</div>
+        </div>
+      </div>
+      <label class="gps-switch">
+        <input type="checkbox" id="gps-toggle" onchange="toggleGPS()">
+        <span class="gps-slider"></span>
+      </label>
+    </div>
+    <div class="gps-detail" id="gps-detail" style="display:none">
+      <div class="gps-item"><span>当前速度</span><strong id="gps-speed">0 km/h</strong></div>
+      <div class="gps-item"><span>GPS里程</span><strong id="gps-km">0.00 km</strong></div>
+      <div class="gps-item"><span>信号强度</span><strong id="gps-signal">--</strong></div>
+    </div>
+
     <button class="wait-btn" id="wait-btn" onclick="toggleWaiting()">
       <svg class="svg-icon" style="width:18px;height:18px" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       开始等待计费
@@ -598,6 +634,7 @@ const TEMPLATES=[
   {name:'自定义',base:35,basekm:8,perkm:2.5,wait:0.5,freeWait:10,nbase:55,nkm:3.5}
 ];
 let state={running:false,startTime:0,elapsed:0,timerId:null,waiting:false,waitStart:0,waitElapsed:0,waitTimerId:null,km:0};
+let gps={on:false,watchId:null,lastLat:null,lastLng:null,totalKm:0,lastTime:0,speed:0,signal:'--'};
 let orders=JSON.parse(localStorage.getItem('daijia_v3_orders')||'[]');
 let config=JSON.parse(localStorage.getItem('daijia_v3_config')||'{}');
 let currentTpl=config.tpl||0;
@@ -678,6 +715,8 @@ function saveOrder(){
 }
 function resetTimer(){
   state={running:false,startTime:0,elapsed:0,timerId:null,waiting:false,waitStart:0,waitElapsed:0,waitTimerId:null,km:0};
+  if(gps.on){stopGPS();document.getElementById('gps-toggle').checked=false;}
+  gps={on:false,watchId:null,lastLat:null,lastLng:null,totalKm:0,lastTime:0,speed:0,signal:'--'};
   document.getElementById('complete-text').textContent='开始服务';
   document.getElementById('complete-btn').onclick=startTimer;
   document.getElementById('timer-title').textContent='代驾计费';
@@ -705,6 +744,66 @@ function toggleWaiting(){
 function editKm(){
   const v=prompt('输入行驶里程（公里）',state.km||0);
   if(v!==null){state.km=parseFloat(v)||0;updateDisplay();}
+}
+
+// GPS计里程
+function haversine(lat1,lng1,lat2,lng2){
+  const R=6371,toRad=d=>d*Math.PI/180;
+  const dLat=toRad(lat2-lat1),dLng=toRad(lng2-lng1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function toggleGPS(){
+  const on=document.getElementById('gps-toggle').checked;
+  if(on){startGPS();}else{stopGPS();}
+}
+function startGPS(){
+  if(!navigator.geolocation){showToast('当前浏览器不支持GPS');document.getElementById('gps-toggle').checked=false;return;}
+  if(location.protocol==='file:'){showToast('GPS需部署到HTTPS网站使用');document.getElementById('gps-toggle').checked=false;return;}
+  gps.on=true;gps.lastLat=null;gps.lastLng=null;gps.totalKm=0;gps.lastTime=0;gps.speed=0;gps.signal='搜索中';
+  document.getElementById('gps-status').textContent='已开启';
+  document.getElementById('gps-status').style.color='#22c55e';
+  document.getElementById('gps-detail').style.display='flex';
+  document.getElementById('gps-sub').textContent='正在获取卫星定位...';
+  gps.watchId=navigator.geolocation.watchPosition(onGpsSuccess,onGpsError,{enableHighAccuracy:true,maximumAge:1000,timeout:10000});
+}
+function stopGPS(){
+  gps.on=false;
+  if(gps.watchId!==null){navigator.geolocation.clearWatch(gps.watchId);gps.watchId=null;}
+  document.getElementById('gps-status').textContent='未开启';
+  document.getElementById('gps-status').style.color='#999';
+  document.getElementById('gps-detail').style.display='none';
+  document.getElementById('gps-sub').textContent='开启后自动记录行驶公里数';
+}
+function onGpsSuccess(pos){
+  const lat=pos.coords.latitude,lng=pos.coords.longitude;
+  const acc=pos.coords.accuracy||999;
+  // 信号强度
+  if(acc<20)gps.signal='强';else if(acc<50)gps.signal='中';else gps.signal='弱';
+  document.getElementById('gps-signal').textContent=gps.signal+' ('+Math.round(acc)+'m)';
+  const now=Date.now();
+  if(gps.lastLat!==null){
+    const dist=haversine(gps.lastLat,gps.lastLng,lat,lng);
+    const dt=(now-gps.lastTime)/1000;
+    // 过滤GPS漂移：距离小于5米或速度超过200km/h忽略
+    if(dist>0.005&&dist<0.3&&dt>0){
+      gps.totalKm+=dist;
+      gps.speed=dist/dt*3600; // km/h
+      // 自动累加到里程（如果GPS里程大于手动里程）
+      if(gps.totalKm>state.km){state.km=gps.totalKm;}
+    }
+  }
+  gps.lastLat=lat;gps.lastLng=lng;gps.lastTime=now;
+  document.getElementById('gps-km').textContent=gps.totalKm.toFixed(2)+' km';
+  document.getElementById('gps-speed').textContent=gps.speed.toFixed(0)+' km/h';
+  document.getElementById('gps-sub').textContent='定位精度 '+Math.round(acc)+'米';
+  updateDisplay();
+}
+function onGpsError(err){
+  const msgs={1:'用户拒绝了定位授权',2:'无法获取位置信息',3:'定位超时'};
+  showToast('GPS错误：'+(msgs[err.code]||'未知错误'));
+  document.getElementById('gps-toggle').checked=false;
+  stopGPS();
 }
 
 function renderTpl(){
