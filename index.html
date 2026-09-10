@@ -19,14 +19,14 @@
   --shadow:0 2px 12px rgba(15,118,110,.08);
   --shadow-lg:0 8px 30px rgba(15,118,110,.15);
 }
-html,body{height:100%;overflow:hidden;overscroll-behavior:none;-webkit-overflow-scrolling:touch}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:none}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue','Segoe UI',Roboto,sans-serif;
   background:var(--bg);color:var(--text);
   -webkit-font-smoothing:antialiased;
   position:fixed;top:0;left:0;right:0;bottom:0;
 }
-.view{height:100vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:90px;overscroll-behavior:contain}
+.view{height:100vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:90px;overscroll-behavior:contain;touch-action:pan-y}
 
 /* ===== 通用组件 ===== */
 .svg-icon{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -1027,6 +1027,17 @@ document.documentElement.style.setProperty('--primary-dark',pd);
 document.querySelectorAll('.theme-dot').forEach(d=>{if(d.dataset.c===theme)d.classList.add('active');});
 document.getElementById('voice-val').textContent=voiceOn?'已开启 ›':'已关闭 ›';
 renderTpl();loadSettings();renderHome();renderOrders();renderStats();renderId();updateDisplay();
+
+// 禁止整个页面滑动，只允许.view内部滚动
+document.addEventListener('touchmove',function(e){
+  let el=e.target;
+  let scrollable=false;
+  while(el&&el!==document.body){
+    if(el.classList&&el.classList.contains('view')){scrollable=true;break;}
+    el=el.parentElement;
+  }
+  if(!scrollable){e.preventDefault();}
+},{passive:false});
 </script>
 </body>
 </html>
