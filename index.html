@@ -634,7 +634,7 @@ const TEMPLATES=[
   {name:'自定义',base:35,basekm:8,perkm:2.5,wait:0.5,freeWait:10,nbase:55,nkm:3.5}
 ];
 let state={running:false,startTime:0,elapsed:0,timerId:null,waiting:false,waitStart:0,waitElapsed:0,waitTimerId:null,km:0};
-let gps={on:false,watchId:null,lastLat:null,lastLng:null,totalKm:0,lastTime:0,speed:0,signal:'--'};
+let gps={on:false,watchId:null,lastLat:null,lastLng:null,totalKm:0,baseKm:0,lastTime:0,speed:0,signal:'--'};
 let orders=JSON.parse(localStorage.getItem('daijia_v3_orders')||'[]');
 let config=JSON.parse(localStorage.getItem('daijia_v3_config')||'{}');
 let currentTpl=config.tpl||0;
@@ -716,7 +716,7 @@ function saveOrder(){
 function resetTimer(){
   state={running:false,startTime:0,elapsed:0,timerId:null,waiting:false,waitStart:0,waitElapsed:0,waitTimerId:null,km:0};
   if(gps.on){stopGPS();document.getElementById('gps-toggle').checked=false;}
-  gps={on:false,watchId:null,lastLat:null,lastLng:null,totalKm:0,lastTime:0,speed:0,signal:'--'};
+  gps={on:false,watchId:null,lastLat:null,lastLng:null,totalKm:0,baseKm:0,lastTime:0,speed:0,signal:'--'};
   document.getElementById('complete-text').textContent='开始服务';
   document.getElementById('complete-btn').onclick=startTimer;
   document.getElementById('timer-title').textContent='代驾计费';
@@ -760,7 +760,7 @@ function toggleGPS(){
 function startGPS(){
   if(!navigator.geolocation){showToast('当前浏览器不支持GPS');document.getElementById('gps-toggle').checked=false;return;}
   if(location.protocol==='file:'){showToast('GPS需部署到HTTPS网站使用');document.getElementById('gps-toggle').checked=false;return;}
-  gps.on=true;gps.lastLat=null;gps.lastLng=null;gps.totalKm=0;gps.lastTime=0;gps.speed=0;gps.signal='搜索中';
+  gps.on=true;gps.lastLat=null;gps.lastLng=null;gps.totalKm=0;gps.baseKm=state.km||0;gps.lastTime=0;gps.speed=0;gps.signal='搜索中';
   document.getElementById('gps-status').textContent='已开启';
   document.getElementById('gps-status').style.color='#22c55e';
   document.getElementById('gps-detail').style.display='flex';
@@ -789,8 +789,8 @@ function onGpsSuccess(pos){
     if(dist>0.005&&dist<0.3&&dt>0){
       gps.totalKm+=dist;
       gps.speed=dist/dt*3600; // km/h
-      // 自动累加到里程（如果GPS里程大于手动里程）
-      if(gps.totalKm>state.km){state.km=gps.totalKm;}
+      // GPS里程与已行驶公里完全同步
+      state.km=gps.baseKm+gps.totalKm;
     }
   }
   gps.lastLat=lat;gps.lastLng=lng;gps.lastTime=now;
@@ -933,15 +933,16 @@ function renderAvatar(){
   const homeAvatar=document.querySelector('.driver-avatar');
   const idAvatar=document.querySelector('.id-avatar');
   const preview=document.getElementById('avatar-preview');
+  const defaultAvatar='<svg viewBox="0 0 100 100" style="width:70%;height:70%"><defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5eead4"/><stop offset="100%" stop-color="#0d9488"/></linearGradient></defs><circle cx="50" cy="35" r="16" fill="#fff"/><path d="M20 85 Q20 55 50 55 Q80 55 80 85 Z" fill="#fff"/><circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2"/></svg>';
   if(config.avatar){
-    const img='<img src="'+config.avatar+'" style="width:100%;height:100%;object-fit:cover">';
+    const img='<img src="'+config.avatar+'" style="width:100%;height:100%;object-fit:cover;display:block">';
     if(homeAvatar)homeAvatar.innerHTML=img;
     if(idAvatar)idAvatar.innerHTML=img;
     if(preview)preview.innerHTML=img;
   }else{
-    if(homeAvatar)homeAvatar.innerHTML='👤';
-    if(idAvatar)idAvatar.innerHTML='👤';
-    if(preview)preview.innerHTML='👤';
+    if(homeAvatar)homeAvatar.innerHTML=defaultAvatar;
+    if(idAvatar)idAvatar.innerHTML=defaultAvatar;
+    if(preview)preview.innerHTML=defaultAvatar;
   }
 }
 
