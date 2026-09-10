@@ -755,48 +755,93 @@ function editKm(){
 }
 
 // GPS计里程
-let wakeLock=null,audioCtx=null,keepAliveTimer=null;
+let wakeLock=null,audioCtx=null,keepAliveTimer=null,backupGpsTimer=null,oscNode=null,gainNode=null;
 function haversine(lat1,lng1,lat2,lng2){
   const R=6371,toRad=d=>d*Math.PI/180;
   const dLat=toRad(lat2-lat1),dLng=toRad(lng2-lng1);
   const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
-// 后台保活：无声音频+屏幕常亮
+// 极致后台保活：无声音频+屏幕常亮+定时备份定位+本地存储
 function startKeepAlive(){
+  // 1. 屏幕常亮
   try{
     if('getScreenWakeLock' in navigator){navigator.getScreenWakeLock().then(l=>{wakeLock=l;}).catch(()=>{});}
   }catch(e){}
+  // 2. 无声音频保活（用1Hz超低频+极低音量，人耳听不到但浏览器认为在播放）
   try{
     if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
     if(audioCtx.state==='suspended'){audioCtx.resume();}
-    // 播放无声音频保持后台运行
-    const osc=audioCtx.createOscillator();
-    const gain=audioCtx.createGain();
-    gain.gain.value=0;
-    osc.connect(gain);gain.connect(audioCtx.destination);
-    osc.start();
-    keepAliveTimer=setInterval(()=>{
-      try{if(audioCtx.state==='suspended')audioCtx.resume();}catch(e){}
-    },10000);
+    if(!oscNode){
+      oscNode=audioCtx.createOscillator();
+      gainNode=audioCtx.createGain();
+      oscNode.frequency.value=1; // 1Hz超低频，人耳完全听不到
+      gainNode.gain.value=0.0001; // 极低音量
+      oscNode.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscNode.start();
+    }
   }catch(e){}
+  // 3. 高频心跳保活（每3秒唤醒一次音频上下文）
+  if(keepAliveTimer)clearInterval(keepAliveTimer);
+  keepAliveTimer=setInterval(()=>{
+    try{
+      if(audioCtx&&audioCtx.state==='suspended'){audioCtx.resume();}
+      if(gainNode){gainNode.gain.value=0.0001;} // 触碰音频节点保持活跃
+    }catch(e){}
+  },3000);
+  // 4. 备份定位：每15秒强制获取一次位置（即使watchPosition停了也能补）
+  if(backupGpsTimer)clearInterval(backupGpsTimer);
+  backupGpsTimer=setInterval(()=>{
+    if(gps.on&&navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(function(pos){
+        onGpsSuccess(pos);
+      },function(){},{enableHighAccuracy:true,timeout:8000,maximumAge:0});
+    }
+  },15000);
+  // 5. 本地存储最后位置，切回来补算
+  try{localStorage.setItem('daijia_last_gps',JSON.stringify({lat:gps.lastLat,lng:gps.lastLng,km:gps.totalKm,time:Date.now()}));}catch(e){}
 }
 function stopKeepAlive(){
   if(wakeLock){try{wakeLock.release();}catch(e){}wakeLock=null;}
   if(keepAliveTimer){clearInterval(keepAliveTimer);keepAliveTimer=null;}
+  if(backupGpsTimer){clearInterval(backupGpsTimer);backupGpsTimer=null;}
+  if(oscNode){try{oscNode.stop();}catch(e){}oscNode=null;}
+  if(gainNode){try{gainNode.disconnect();}catch(e){}gainNode=null;}
 }
-// 切回前台时补算GPS距离
+// 切回前台时：从本地存储恢复最后位置+立即获取当前位置补算
 document.addEventListener('visibilitychange',function(){
-  if(!document.hidden&&gps.on&&gps.lastLat!==null){
-    // 重新获取一次位置补算
-    navigator.geolocation.getCurrentPosition(function(pos){
-      const dist=haversine(gps.lastLat,gps.lastLng,pos.coords.latitude,pos.coords.longitude);
-      if(dist>0.01&&dist<5){
-        gps.totalKm+=dist;
-        state.km=gps.baseKm+gps.totalKm;
-        updateDisplay();
+  if(!document.hidden&&gps.on){
+    // 从本地存储恢复
+    try{
+      const last=JSON.parse(localStorage.getItem('daijia_last_gps')||'{}');
+      if(last.lat&&last.lng&&gps.lastLat===null){
+        gps.lastLat=last.lat;gps.lastLng=last.lng;gps.totalKm=last.km||0;
       }
-    },function(){},{enableHighAccuracy:true,timeout:5000});
+    }catch(e){}
+    // 立即获取当前位置补算后台距离
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(function(pos){
+        if(gps.lastLat!==null){
+          const dist=haversine(gps.lastLat,gps.lastLng,pos.coords.latitude,pos.coords.longitude);
+          if(dist>0.01&&dist<10){
+            gps.totalKm+=dist;
+            state.km=gps.baseKm+gps.totalKm;
+            updateDisplay();
+            showToast('已补算后台行驶 '+dist.toFixed(2)+' 公里');
+          }
+        }
+        onGpsSuccess(pos);
+      },function(){},{enableHighAccuracy:true,timeout:8000});
+    }
+    // 恢复音频
+    try{if(audioCtx&&audioCtx.state==='suspended'){audioCtx.resume();}}catch(e){}
+  }
+});
+// 页面卸载前保存最后位置
+window.addEventListener('beforeunload',function(){
+  if(gps.on&&gps.lastLat!==null){
+    try{localStorage.setItem('daijia_last_gps',JSON.stringify({lat:gps.lastLat,lng:gps.lastLng,km:gps.totalKm,time:Date.now()}));}catch(e){}
   }
 });
 function toggleGPS(){
@@ -842,6 +887,8 @@ function onGpsSuccess(pos){
     }
   }
   gps.lastLat=lat;gps.lastLng=lng;gps.lastTime=now;
+  // 保存最后位置到本地，防止后台丢失
+  try{localStorage.setItem('daijia_last_gps',JSON.stringify({lat,lng,km:gps.totalKm,time:now}));}catch(e){}
   document.getElementById('gps-km').textContent=gps.totalKm.toFixed(2)+' km';
   document.getElementById('gps-speed').textContent=gps.speed.toFixed(0)+' km/h';
   document.getElementById('gps-sub').textContent='定位精度 '+Math.round(acc)+'米';
