@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="代驾计时Pro">
+<meta name="theme-color" content="#3d4f6f">
+<title>代驾计时Pro</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+:root{
+  --primary:#14b8a6;--primary-dark:#0d9488;--primary-light:#2dd4bf;
+  --header:#3d4f6f;--header-dark:#2d3e5c;
+  --bg:#f0f2f5;--card:#fff;--border:#e8eaed;
+  --text:#1a1a2e;--text2:#6b7280;--text3:#9ca3af;
+  --gold:#f59e0b;--red:#ef4444;--green:#10b981;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+  padding-bottom:80px;overflow-x:hidden;
+}
+
+/* ===== 顶部 ===== */
+.top-bar{
+  background:linear-gradient(180deg,var(--header),var(--header-dark));
+  padding:50px 20px 60px;color:#fff;position:relative;
+}
+.top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.top-title{font-size:20px;font-weight:700;display:flex;align-items:center;gap:6px}
+.top-title .arrow{font-size:14px;opacity:.7}
+.top-icons{display:flex;gap:16px;font-size:20px}
+.top-icons span{cursor:pointer}
+.stats-row{display:flex;justify-content:space-around;text-align:center}
+.stat-item .num{font-size:32px;font-weight:800;letter-spacing:1px}
+.stat-item .label{font-size:13px;opacity:.8;margin-top:4px}
+
+/* ===== 功能入口 ===== */
+.func-card{
+  margin:-36px 16px 12px;background:#fff;border-radius:16px;
+  padding:20px 10px;display:flex;justify-content:space-around;
+  box-shadow:0 4px 20px rgba(0,0,0,.08);position:relative;z-index:2;
+}
+.func-item{text-align:center;cursor:pointer}
+.func-icon{
+  width:44px;height:44px;border-radius:12px;margin:0 auto 8px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:rgba(20,184,166,.1);color:var(--primary);
+}
+.func-label{font-size:12px;color:var(--text2);font-weight:500}
+
+/* ===== 公告条 ===== */
+.notice-bar{
+  margin:0 16px 12px;background:#fff;border-radius:12px;
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;color:var(--text2);
+}
+.notice-bar .close{color:var(--text3);cursor:pointer;font-size:16px}
+
+/* ===== 邀请卡片 ===== */
+.invite-card{
+  margin:0 16px 12px;background:#fff;border-radius:14px;padding:16px;
+}
+.invite-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.invite-title .badge{font-size:11px;background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:6px;font-weight:600;margin-left:auto}
+.invite-list{font-size:13px;color:var(--text2);line-height:2}
+.invite-list li{list-style:none;display:flex;justify-content:space-between}
+.invite-list .red{color:var(--red);font-weight:700;font-size:18px}
+
+/* ===== 底部大按钮 ===== */
+.bottom-action{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;padding:12px 16px 24px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 -2px 12px rgba(0,0,0,.06);z-index:100;
+}
+.ba-icon{width:40px;height:40px;border-radius:10px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text2)}
+.ba-main{
+  flex:1;height:54px;border:none;border-radius:16px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;font-size:18px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 4px 16px rgba(20,184,166,.35);
+}
+.ba-main:active{transform:scale(.98)}
+.ba-main .arrows{font-size:22px;font-weight:900}
+
+/* ===== 计时页面 ===== */
+.timer-header{
+  background:linear-gradient(180deg,var(--header),var(--header-dark));
+  padding:50px 20px 20px;color:#fff;display:flex;justify-content:space-between;align-items:center;
+}
+.timer-header .back{font-size:20px;cursor:pointer}
+.timer-header .title{font-size:18px;font-weight:700}
+.timer-header .rule{font-size:14px;opacity:.8;cursor:pointer}
+
+.timer-body{padding:16px}
+.dest-row{
+  background:#fff;border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;
+}
+.dest-left{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
+.dest-left .pin{color:var(--primary);font-size:18px}
+.dest-right{color:var(--text3);font-size:14px;cursor:pointer}
+
+.fee-card{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  border-radius:18px;padding:28px 20px;color:#fff;text-align:center;
+  position:relative;overflow:hidden;margin-bottom:12px;
+  box-shadow:0 8px 28px rgba(20,184,166,.3);
+}
+.fee-card::before{content:'¥';position:absolute;left:-10px;top:50%;transform:translateY(-50%);font-size:120px;opacity:.08;font-weight:900}
+.fee-amount{font-size:52px;font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums;position:relative;z-index:1}
+.fee-divider{width:60%;height:2px;background:rgba(255,255,255,.3);margin:10px auto}
+.fee-label{font-size:15px;opacity:.9;position:relative;z-index:1}
+.fee-duration{font-size:16px;margin-top:8px;font-variant-numeric:tabular-nums;position:relative;z-index:1}
+.nav-btn{
+  position:absolute;top:16px;right:16px;background:#fff;color:var(--primary);
+  width:52px;height:52px;border-radius:14px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:20px;cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+.nav-btn span{font-size:10px;font-weight:700;margin-top:2px}
+
+.info-row{display:flex;gap:12px;margin-bottom:12px}
+.info-box{
+  flex:1;background:#fff;border-radius:14px;padding:18px 10px;text-align:center;
+}
+.info-num{font-size:26px;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums}
+.info-label{font-size:13px;color:var(--text2);margin-top:4px}
+
+.wait-btn{
+  width:100%;padding:16px;border:2px solid var(--primary);border-radius:14px;
+  background:#fff;color:var(--primary);font-size:17px;font-weight:700;cursor:pointer;
+  margin-bottom:12px;
+}
+.wait-btn.waiting{background:rgba(245,158,11,.1);border-color:var(--gold);color:var(--gold)}
+.complete-btn{
+  width:100%;padding:18px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;font-size:18px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 4px 16px rgba(20,184,166,.35);
+}
+.complete-btn .arrows{font-size:24px;font-weight:900}
+.tip-text{text-align:center;font-size:12px;color:var(--text3);margin-top:10px}
+
+/* ===== 加价/模板/额外费 ===== */
+.quick-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.quick-row::-webkit-scrollbar{display:none}
+.quick-item{
+  flex-shrink:0;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;
+  background:#fff;color:var(--text2);border:1px solid var(--border);cursor:pointer;white-space:nowrap;
+}
+.quick-item.active{background:rgba(20,184,166,.1);color:var(--primary);border-color:var(--primary)}
+
+/* ===== 订单列表 ===== */
+.page-header{padding:50px 20px 16px;background:linear-gradient(180deg,var(--header),var(--header-dark));color:#fff}
+.page-header .title{font-size:18px;font-weight:700}
+.order-list{padding:16px}
+.order-card{background:#fff;border-radius:14px;padding:16px;margin-bottom:10px}
+.order-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.order-time{font-size:14px;color:var(--text2)}
+.order-fee{font-size:22px;font-weight:800;color:var(--gold)}
+.order-detail{font-size:12px;color:var(--text3);display:flex;gap:12px}
+.order-detail span{display:flex;align-items:center;gap:3px}
+.empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px}
+
+/* ===== 统计 ===== */
+.stats-cards{padding:16px}
+.stats-card{background:#fff;border-radius:14px;padding:18px;margin-bottom:12px}
+.stats-card .ct{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text)}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sg-item{text-align:center;padding:10px 4px;background:#f9fafb;border-radius:10px}
+.sg-num{font-size:20px;font-weight:800;color:var(--primary)}
+.sg-label{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* ===== 设置 ===== */
+.set-list{padding:16px}
+.set-card{background:#fff;border-radius:14px;margin-bottom:12px;overflow:hidden}
+.set-item{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f3f4f6;cursor:pointer}
+.set-item:last-child{border-bottom:none}
+.set-item .label{font-size:14px;color:var(--text)}
+.set-item .val{font-size:13px;color:var(--text3);display:flex;align-items:center;gap:4px}
+.theme-dots{display:flex;gap:10px}
+.theme-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent}
+.theme-dot.active{border-color:var(--primary)}
+
+/* ===== 弹窗 ===== */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:200;justify-content:center;align-items:center}
+.modal.show{display:flex}
+.modal-box{background:#fff;width:86%;max-width:340px;border-radius:20px;padding:24px 20px;animation:modalIn .3s}
+@keyframes modalIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:4px}
+.modal-fee{font-size:42px;font-weight:800;color:var(--gold);text-align:center;margin:16px 0;font-variant-numeric:tabular-nums}
+.modal-detail{font-size:13px;color:var(--text2);line-height:2;margin-bottom:18px}
+.modal-detail .row{display:flex;justify-content:space-between}
+.modal-btns{display:flex;gap:10px}
+.modal-btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
+.modal-btn-save{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff}
+.modal-btn-cancel{background:#f3f4f6;color:var(--text2)}
+
+.toast{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;z-index:999;display:none}
+.toast.show{display:block}
+
+.view{display:none;min-height:100vh}
+.view.active{display:block}
+</style>
+</head>
+<body>
+
+<!-- ===== 首页 ===== -->
+<div class="view active" id="view-home">
+  <div class="top-bar">
+    <div class="top-row">
+      <div class="top-title">代驾 <span class="arrow">▼</span></div>
+      <div class="top-icons"><span>💬</span><span>👤</span></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-item"><div class="num" id="h-orders">0</div><div class="label">今日成单</div></div>
+      <div class="stat-item"><div class="num" id="h-income">0.00</div><div class="label">今日收入</div></div>
+      <div class="stat-item"><div class="num" id="h-total">0</div><div class="label">累计单数</div></div>
+    </div>
+  </div>
+
+  <div class="func-card">
+    <div class="func-item" onclick="showToast('代驾圈功能开发中')"><div class="func-icon">📢</div><div class="func-label">代驾圈</div></div>
+    <div class="func-item" onclick="showToast('代驾小队功能开发中')"><div class="func-icon">👥</div><div class="func-label">代驾小队</div></div>
+    <div class="func-item" onclick="goTab('orders')"><div class="func-icon">📋</div><div class="func-label">小队订单</div></div>
+    <div class="func-item" onclick="showToast('派单功能开发中')"><div class="func-icon">📤</div><div class="func-label">派单</div></div>
+  </div>
+
+  <div class="notice-bar">
+    <span>📌 使用帮助：定位不准，公里数可手动调整</span>
+    <span class="close" onclick="this.parentElement.style.display='none'">×</span>
+  </div>
+
+  <div class="invite-card">
+    <div class="invite-title">💰 邀请新用户奖励 <span class="badge">有效邀请：0人</span></div>
+    <ul class="invite-list">
+      <li><span>• 邀请成功后，你们各得3天会员</span></li>
+      <li><span>• 新用户首充会员您将得到50%佣金</span></li>
+      <li><span>• 新用户续费会员，您还能得到10%佣金</span><span class="red">0.0元</span></li>
+    </ul>
+  </div>
+
+  <div class="bottom-action">
+    <div class="ba-icon" onclick="goTab('settings')">⚙️</div>
+    <button class="ba-main" onclick="goTab('timer')"><span class="arrows">»</span> 开始接单</button>
+    <div class="ba-icon" onclick="goTab('id')">📱</div>
+  </div>
+</div>
+
+<!-- ===== 计时页 ===== -->
+<div class="view" id="view-timer">
+  <div class="timer-header">
+    <span class="back" onclick="goTab('home')">←</span>
+    <span class="title" id="timer-title">实时计费</span>
+    <span class="rule" onclick="showToast('计费规则：起步价含8公里，超出2.5元/公里')">计费规则</span>
+  </div>
+  <div class="timer-body">
+    <div class="dest-row">
+      <div class="dest-left"><span class="pin">📍</span> 目的地</div>
+      <div class="dest-right" onclick="showToast('可手动输入目的地')">未设置目的地 ›</div>
+    </div>
+
+    <div class="fee-card">
+      <div class="nav-btn" onclick="showToast('导航功能需接入地图')">🧭<span>导航</span></div>
+      <div class="fee-amount" id="t-fee">0.00</div>
+      <div class="fee-divider"></div>
+      <div class="fee-label">实时计费(元)</div>
+      <div class="fee-duration" id="t-duration">开车时长：00:00:00</div>
+    </div>
+
+    <div class="quick-row" id="tpl-row"></div>
+
+    <div class="info-row">
+      <div class="info-box" id="km-box" onclick="editKm()">
+        <div class="info-num" id="t-km">0.00</div>
+        <div class="info-label">已行程里</div>
+      </div>
+      <div class="info-box">
+        <div class="info-num" id="t-wait">00:00</div>
+        <div class="info-label">等候计时</div>
+      </div>
+    </div>
+
+    <button class="wait-btn" id="wait-btn" onclick="toggleWaiting()">开始等待</button>
+    <button class="complete-btn" id="complete-btn" onclick="startTimer()"><span class="arrows">»</span> <span id="complete-text">开始服务</span></button>
+    <div class="tip-text">请结束服务后与客户结算费用</div>
+  </div>
+</div>
+
+<!-- ===== 订单页 ===== -->
+<div class="view" id="view-orders">
+  <div class="page-header"><div class="title">订单记录</div></div>
+  <div class="order-list" id="orders-list"></div>
+</div>
+
+<!-- ===== 统计页 ===== -->
+<div class="view" id="view-stats">
+  <div class="page-header"><div class="title">收入统计</div></div>
+  <div class="stats-cards">
+    <div class="stats-card">
+      <div class="ct">收入概览</div>
+      <div class="stats-grid">
+        <div class="sg-item"><div class="sg-num" id="s-today">¥0</div><div class="sg-label">今日收入</div></div>
+        <div class="sg-item"><div class="sg-num" id="s-week">¥0</div><div class="sg-label">本周收入</div></div>
+        <div class="sg-item"><div class="sg-num" id="s-month">¥0</div><div class="sg-label">本月收入</div></div>
+      </div>
+    </div>
+    <div class="stats-card">
+      <div class="ct">订单数据</div>
+      <div class="stats-grid">
+        <div class="sg-item"><div class="sg-num" id="s-orders">0</div><div class="sg-label">今日单数</div></div>
+        <div class="sg-item"><div class="sg-num" id="s-avg">¥0</div><div class="sg-label">平均单收入</div></div>
+        <div class="sg-item"><div class="sg-num" id="s-total">¥0</div><div class="sg-label">累计收入</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 工牌页 ===== -->
+<div class="view" id="view-id">
+  <div class="page-header"><div class="title">电子工牌</div></div>
+  <div style="padding:16px">
+    <div style="background:linear-gradient(135deg,#1a2340,#0f1628);border-radius:20px;padding:28px 20px;text-align:center;color:#fff">
+      <div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:32px">🚗</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:4px" id="id-name">代驾师傅</div>
+      <div style="font-size:12px;opacity:.6;margin-bottom:16px">专业代驾 · 安全送达</div>
+      <div style="width:140px;height:140px;background:#fff;border-radius:12px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 100 100" id="qr-svg" style="width:120px;height:120px"></svg>
+      </div>
+      <div style="font-size:11px;opacity:.6;line-height:1.8">
+        <strong style="opacity:.9">扫码呼叫代驾</strong><br>
+        工号：DJ<span id="id-num">88888</span><br>
+        已安全服务 <span id="id-orders">0</span> 单
+      </div>
+    </div>
+    <div class="stats-card" style="margin-top:12px">
+      <div class="ct">工牌设置</div>
+      <div class="set-item"><span class="label">司机昵称</span><input type="text" id="set-name" style="width:120px;padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;text-align:right;font-size:13px" placeholder="代驾师傅"></div>
+      <div class="set-item"><span class="label">工号</span><input type="text" id="set-num" style="width:120px;padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;text-align:right;font-size:13px" placeholder="88888"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 设置页 ===== -->
+<div class="view" id="view-settings">
+  <div class="page-header"><div class="title">设置</div></div>
+  <div class="set-list">
+    <div class="set-card">
+      <div class="set-item"><span class="label">主题颜色</span>
+        <div class="theme-dots">
+          <div class="theme-dot active" style="background:#14b8a6" data-c="#14b8a6,#0d9488"></div>
+          <div class="theme-dot" style="background:#3b82f6" data-c="#3b82f6,#2563eb"></div>
+          <div class="theme-dot" style="background:#f59e0b" data-c="#f59e0b,#d97706"></div>
+          <div class="theme-dot" style="background:#a855f7" data-c="#a855f7,#9333ea"></div>
+        </div>
+      </div>
+      <div class="set-item" onclick="toggleVoice()"><span class="label">语音播报</span><span class="val" id="voice-val">已开启 ›</span></div>
+    </div>
+    <div class="set-card">
+      <div class="set-item"><span class="label">当前计费模板</span><span class="val" id="cur-tpl">滴滴代驾 ›</span></div>
+      <div class="set-item"><span class="label">起步价（含8公里）</span><span class="val"><input type="number" id="s-base" value="35" style="width:50px;text-align:right;border:none;font-size:13px;color:var(--text3)">元</span></div>
+      <div class="set-item"><span class="label">超出每公里</span><span class="val"><input type="number" id="s-perkm" value="2.5" step="0.1" style="width:50px;text-align:right;border:none;font-size:13px;color:var(--text3)">元</span></div>
+      <div class="set-item"><span class="label">等待费每分钟</span><span class="val"><input type="number" id="s-wait" value="0.5" step="0.1" style="width:50px;text-align:right;border:none;font-size:13px;color:var(--text3)">元</span></div>
+      <div class="set-item"><span class="label">夜间起步价</span><span class="val"><input type="number" id="s-nbase" value="55" style="width:50px;text-align:right;border:none;font-size:13px;color:var(--text3)">元</span></div>
+    </div>
+    <div class="set-card">
+      <div class="set-item" onclick="clearOrders()"><span class="label" style="color:var(--red)">清空所有订单</span><span class="val">›</span></div>
+      <div class="set-item"><span class="label">版本</span><span class="val">v2.0 Pro</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 结算弹窗 -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-title">本单结算</div>
+    <div class="modal-fee" id="modal-fee">¥0.00</div>
+    <div class="modal-detail" id="modal-detail"></div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+      <button class="modal-btn modal-btn-save" onclick="saveOrder()">保存订单</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TEMPLATES=[
+  {name:'滴滴代驾',base:35,basekm:8,perkm:2.5,wait:0.5,nbase:55,nkm:3.5},
+  {name:'e代驾',base:39,basekm:10,perkm:2.8,wait:0.5,nbase:59,nkm:3.8},
+  {name:'白天标准',base:30,basekm:5,perkm:3,wait:0.5,nbase:30,nkm:3},
+  {name:'夜间专用',base:55,basekm:8,perkm:3.5,wait:0.5,nbase:65,nkm:4.5},
+  {name:'自定义',base:35,basekm:8,perkm:2.5,wait:0.5,nbase:55,nkm:3.5}
+];
+
+let state={running:false,startTime:0,elapsed:0,timerId:null,waiting:false,waitStart:0,waitElapsed:0,waitTimerId:null};
+let orders=JSON.parse(localStorage.getItem('daijia_v2_orders')||'[]');
+let config=JSON.parse(localStorage.getItem('daijia_v2_config')||'{}');
+let currentTpl=config.tpl||0;
+let voiceOn=config.voice!==false,theme=config.theme||'#14b8a6,#0d9488';
+
+function getCfg(k){const t=TEMPLATES[currentTpl];const c=config['tpl'+currentTpl]||{};return c[k]!==undefined?c[k]:t[k];}
+function saveCfg(){['base','perkm','wait','nbase'].forEach(k=>{const el=document.getElementById('s-'+k);if(el){if(!config['tpl'+currentTpl])config['tpl'+currentTpl]={};config['tpl'+currentTpl][k]=parseFloat(el.value);}});localStorage.setItem('daijia_v2_config',JSON.stringify(config));}
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtDate(d){const dt=new Date(d);return (dt.getMonth()+1)+'/'+dt.getDate()+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');}
+function fmtTime(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=Math.floor(s%60);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
+function fmtMin(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0');}
+function isNight(h){return h>=22||h<6;}
+
+function calcFee(seconds,waitSeconds,km){
+  const night=isNight(new Date().getHours());
+  const base=night?getCfg('nbase'):getCfg('base');
+  const perkm=night?getCfg('nkm'):getCfg('perkm');
+  const basekm=getCfg('basekm');
+  const kmFee=km>basekm?(km-basekm)*perkm:0;
+  const timeFee=seconds>1800?(seconds-1800)/60*0.3:0;
+  const waitFee=(waitSeconds/60)*getCfg('wait');
+  const total=Math.round((base+kmFee+timeFee+waitFee)*100)/100;
+  return {base,kmFee,timeFee,waitFee,night,total};
+}
+
+function updateDisplay(){
+  const elapsed=state.elapsed+(state.running?Math.floor((Date.now()-state.startTime)/1000):0);
+  const waitElapsed=state.waitElapsed+(state.waiting?Math.floor((Date.now()-state.waitStart)/1000):0);
+  const km=state.km||0;
+  const fee=calcFee(elapsed,waitElapsed,km);
+  document.getElementById('t-fee').textContent=fee.total.toFixed(2);
+  document.getElementById('t-duration').textContent='开车时长：'+fmtTime(elapsed);
+  document.getElementById('t-km').textContent=km.toFixed(2);
+  document.getElementById('t-wait').textContent=fmtMin(waitElapsed);
+}
+
+function speak(text){if(!voiceOn)return;try{const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';speechSynthesis.speak(u);}catch(e){}}
+
+function startTimer(){
+  if(!state.running){
+    saveCfg();state.running=true;state.startTime=Date.now();state.elapsed=0;state.km=0;
+    state.timerId=setInterval(updateDisplay,1000);
+    document.getElementById('complete-text').textContent='完成服务';
+    document.getElementById('complete-btn').onclick=stopTimer;
+    document.getElementById('timer-title').textContent='实时计费中';
+    speak('开始服务，请注意安全');showToast('开始计时');
+  }
+}
+function stopTimer(){
+  const elapsed=state.elapsed+Math.floor((Date.now()-state.startTime)/1000);
+  const waitElapsed=state.waitElapsed+(state.waiting?Math.floor((Date.now()-state.waitStart)/1000):0);
+  const km=state.km||0;
+  clearInterval(state.timerId);clearInterval(state.waitTimerId);
+  const fee=calcFee(elapsed,waitElapsed,km);
+  document.getElementById('modal-fee').textContent='¥'+fee.total.toFixed(2);
+  document.getElementById('modal-detail').innerHTML=
+    '<div class="row"><span>服务时长</span><span>'+fmtTime(elapsed)+'</span></div>'+
+    '<div class="row"><span>行驶里程</span><span>'+km+' 公里</span></div>'+
+    (waitElapsed>0?'<div class="row"><span>等待时长</span><span>'+fmtMin(waitElapsed)+'</span></div>':'')+
+    '<div class="row"><span>起步价</span><span>¥'+fee.base+'（'+(fee.night?'夜间':'白天')+'）</span></div>'+
+    '<div class="row"><span>里程费</span><span>¥'+fee.kmFee.toFixed(1)+'</span></div>'+
+    (fee.waitFee>0?'<div class="row"><span>等待费</span><span>¥'+fee.waitFee.toFixed(1)+'</span></div>':'')+
+    '';
+  state._pending={elapsed,waitElapsed,km,fee};
+  document.getElementById('modal').classList.add('show');
+  speak('本单费用'+fee.total.toFixed(0)+'元');
+}
+function saveOrder(){
+  const p=state._pending;
+  orders.unshift({id:Date.now(),date:today(),time:fmtDate(new Date()),elapsed:p.elapsed,wait:p.waitElapsed,km:p.km,fee:p.fee.total,night:p.fee.night});
+  localStorage.setItem('daijia_v2_orders',JSON.stringify(orders));
+  resetTimer();closeModal();renderHome();renderOrders();renderStats();renderId();
+  showToast('订单已保存');
+}
+function resetTimer(){
+  state={running:false,startTime:0,elapsed:0,timerId:null,waiting:false,waitStart:0,waitElapsed:0,waitTimerId:null,km:0};
+  document.getElementById('complete-text').textContent='开始服务';
+  document.getElementById('complete-btn').onclick=startTimer;
+  document.getElementById('timer-title').textContent='实时计费';
+  document.getElementById('wait-btn').textContent='开始等待';
+  document.getElementById('wait-btn').classList.remove('waiting');
+  updateDisplay();
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+function toggleWaiting(){
+  if(state.waiting){
+    state.waitElapsed+=Math.floor((Date.now()-state.waitStart)/1000);
+    clearInterval(state.waitTimerId);state.waiting=false;
+    document.getElementById('wait-btn').textContent='开始等待';
+    document.getElementById('wait-btn').classList.remove('waiting');
+  }else{
+    state.waiting=true;state.waitStart=Date.now();
+    state.waitTimerId=setInterval(updateDisplay,1000);
+    document.getElementById('wait-btn').textContent='结束等待';
+    document.getElementById('wait-btn').classList.add('waiting');
+  }
+}
+
+function editKm(){
+  const v=prompt('输入行驶里程（公里）',state.km||0);
+  if(v!==null){state.km=parseFloat(v)||0;updateDisplay();}
+}
+
+function renderTpl(){
+  document.getElementById('tpl-row').innerHTML=TEMPLATES.map((t,i)=>'<div class="quick-item '+(i===currentTpl?'active':'')+'" onclick="switchTpl('+i+')">'+t.name+'</div>').join('');
+  document.getElementById('cur-tpl').textContent=TEMPLATES[currentTpl].name+' ›';
+}
+function switchTpl(i){currentTpl=i;config.tpl=i;localStorage.setItem('daijia_v2_config',JSON.stringify(config));renderTpl();loadSettings();updateDisplay();}
+function loadSettings(){['base','perkm','wait','nbase'].forEach(k=>{const el=document.getElementById('s-'+k);if(el)el.value=getCfg(k);});}
+
+function renderHome(){
+  const td=orders.filter(o=>o.date===today());
+  document.getElementById('h-orders').textContent=td.length;
+  document.getElementById('h-income').textContent=td.reduce((s,o)=>s+o.fee,0).toFixed(2);
+  document.getElementById('h-total').textContent=orders.length;
+}
+function renderOrders(){
+  const list=document.getElementById('orders-list');
+  const td=orders.filter(o=>o.date===today());
+  if(td.length===0){list.innerHTML='<div class="empty">今日暂无订单<br><br>点击首页「开始接单」</div>';return;}
+  list.innerHTML=td.map(o=>'<div class="order-card"><div class="order-top"><span class="order-time">'+o.time+(o.night?' 🌙':'')+'</span><span class="order-fee">¥'+o.fee.toFixed(0)+'</span></div><div class="order-detail"><span>⏱ '+fmtTime(o.elapsed)+'</span><span>📍 '+o.km+'km</span>'+(o.wait>0?'<span>⏳ 等'+fmtMin(o.wait)+'</span>':'')+'</div></div>').join('');
+}
+function renderStats(){
+  const now=new Date(),t=today();
+  const ws=new Date(now);ws.setDate(now.getDate()-now.getDay());
+  const w=ws.toISOString().split('T')[0],m=t.substring(0,7);
+  const to=orders.filter(o=>o.date===t),wo=orders.filter(o=>o.date>=w),mo=orders.filter(o=>o.date.startsWith(m));
+  document.getElementById('s-today').textContent='¥'+to.reduce((s,o)=>s+o.fee,0).toFixed(0);
+  document.getElementById('s-week').textContent='¥'+wo.reduce((s,o)=>s+o.fee,0).toFixed(0);
+  document.getElementById('s-month').textContent='¥'+mo.reduce((s,o)=>s+o.fee,0).toFixed(0);
+  document.getElementById('s-orders').textContent=to.length;
+  document.getElementById('s-avg').textContent=orders.length?('¥'+(orders.reduce((s,o)=>s+o.fee,0)/orders.length).toFixed(0)):'¥0';
+  document.getElementById('s-total').textContent='¥'+orders.reduce((s,o)=>s+o.fee,0).toFixed(0);
+}
+function renderQR(){
+  const svg=document.getElementById('qr-svg');let html='';
+  for(let y=0;y<25;y++)for(let x=0;x<25;x++){
+    const isC=(x<7&&y<7)||(x>=18&&y<7)||(x<7&&y>=18);
+    if(isC){const cx=x<7?x:x-18,cy=y<7?y:y-18;if(cx===0||cx===6||cy===0||cy===6||(cx>=2&&cx<=4&&cy>=2&&cy<=4))html+='<rect x="'+(x*4)+'" y="'+(y*4)+'" width="4" height="4" fill="#000"/>';}
+    else if((x*7+y*13+orders.length)%3===0)html+='<rect x="'+(x*4)+'" y="'+(y*4)+'" width="4" height="4" fill="#000"/>';
+  }
+  svg.innerHTML=html;
+}
+function renderId(){
+  document.getElementById('id-name').textContent=config.name||'代驾师傅';
+  document.getElementById('id-num').textContent=config.num||'88888';
+  document.getElementById('id-orders').textContent=orders.length;
+  document.getElementById('set-name').value=config.name||'';
+  document.getElementById('set-num').value=config.num||'';
+  renderQR();
+}
+document.getElementById('set-name').addEventListener('change',function(){config.name=this.value;localStorage.setItem('daijia_v2_config',JSON.stringify(config));renderId();});
+document.getElementById('set-num').addEventListener('change',function(){config.num=this.value;localStorage.setItem('daijia_v2_config',JSON.stringify(config));renderId();});
+
+document.querySelectorAll('.theme-dot').forEach(d=>{
+  d.onclick=function(){
+    document.querySelectorAll('.theme-dot').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+    theme=this.dataset.c;config.theme=theme;
+    const [p,pd]=theme.split(',');
+    document.documentElement.style.setProperty('--primary',p);
+    document.documentElement.style.setProperty('--primary-dark',pd);
+    localStorage.setItem('daijia_v2_config',JSON.stringify(config));
+  };
+});
+
+function toggleVoice(){
+  voiceOn=!voiceOn;config.voice=voiceOn;localStorage.setItem('daijia_v2_config',JSON.stringify(config));
+  document.getElementById('voice-val').textContent=voiceOn?'已开启 ›':'已关闭 ›';
+}
+function clearOrders(){if(confirm('确定清空所有订单？')){orders=[];localStorage.setItem('daijia_v2_orders','[]');renderHome();renderOrders();renderStats();renderId();showToast('已清空');}}
+
+function goTab(tab){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+tab).classList.add('active');
+  if(tab==='orders')renderOrders();
+  if(tab==='stats')renderStats();
+  if(tab==='id')renderId();
+  if(tab==='settings')loadSettings();
+  window.scrollTo(0,0);
+}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+
+// 里程框右滑加1公里（隐藏功能）
+(function(){
+  const box=document.getElementById('km-box');
+  let sx=0,sy=0;
+  box.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  box.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=e.changedTouches[0].clientY-sy;
+    if(dx>40&&Math.abs(dy)<30){state.km=(state.km||0)+1;updateDisplay();showToast('里程 +1 公里');}
+    else if(dx<-40&&Math.abs(dy)<30){state.km=Math.max(0,(state.km||0)-1);updateDisplay();showToast('里程 -1 公里');}
+  });
+  // 电脑端鼠标拖拽
+  let mx=0,dragging=false;
+  box.addEventListener('mousedown',e=>{mx=e.clientX;dragging=true;});
+  box.addEventListener('mouseup',e=>{
+    if(!dragging)return;dragging=false;
+    const dx=e.clientX-mx;
+    if(dx>40){state.km=(state.km||0)+1;updateDisplay();showToast('里程 +1 公里');}
+    else if(dx<-40){state.km=Math.max(0,(state.km||0)-1);updateDisplay();showToast('里程 -1 公里');}
+  });
+})();
+
+// init
+const [p,pd]=theme.split(',');
+document.documentElement.style.setProperty('--primary',p);
+document.documentElement.style.setProperty('--primary-dark',pd);
+document.querySelectorAll('.theme-dot').forEach(d=>{if(d.dataset.c===theme)d.classList.add('active');});
+document.getElementById('voice-val').textContent=voiceOn?'已开启 ›':'已关闭 ›';
+renderTpl();loadSettings();renderHome();renderOrders();renderStats();renderId();updateDisplay();
+</script>
+</body>
+</html>
