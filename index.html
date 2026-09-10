@@ -413,16 +413,27 @@ body{
 
 <!-- ===== 订单页 ===== -->
 <div class="view" id="view-orders">
-  <div class="page-top">
-    <div class="pt-title">订单记录</div>
-    <div class="pt-sub" id="orders-sub">今日共 0 单</div>
+  <div class="page-top" style="display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span onclick="goTab('home')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg class="svg-icon" style="width:16px;height:16px;color:#fff" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </span>
+      <div><div class="pt-title" style="margin:0">订单记录</div><div class="pt-sub" id="orders-sub" style="margin:2px 0 0">今日共 0 单</div></div>
+    </div>
   </div>
   <div class="order-wrap" id="orders-list"></div>
 </div>
 
 <!-- ===== 统计页 ===== -->
 <div class="view" id="view-stats">
-  <div class="page-top"><div class="pt-title">收入统计</div><div class="pt-sub">数据实时更新</div></div>
+  <div class="page-top" style="display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span onclick="goTab('home')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg class="svg-icon" style="width:16px;height:16px;color:#fff" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </span>
+      <div><div class="pt-title" style="margin:0">收入统计</div><div class="pt-sub" style="margin:2px 0 0">数据实时更新</div></div>
+    </div>
+  </div>
   <div class="stats-wrap">
     <div class="card stats-panel">
       <div class="sp-title">📊 收入概览</div>
@@ -445,7 +456,14 @@ body{
 
 <!-- ===== 工牌页 ===== -->
 <div class="view" id="view-id">
-  <div class="page-top"><div class="pt-title">电子工牌</div><div class="pt-sub">出示给客户扫码</div></div>
+  <div class="page-top" style="display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span onclick="goTab('home')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg class="svg-icon" style="width:16px;height:16px;color:#fff" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </span>
+      <div><div class="pt-title" style="margin:0">电子工牌</div><div class="pt-sub" style="margin:2px 0 0">出示给客户扫码</div></div>
+    </div>
+  </div>
   <div class="id-wrap">
     <div class="id-card-pro">
       <div class="id-head">
@@ -472,7 +490,14 @@ body{
 
 <!-- ===== 设置页 ===== -->
 <div class="view" id="view-settings">
-  <div class="page-top"><div class="pt-title">设置</div><div class="pt-sub">个性化配置</div></div>
+  <div class="page-top" style="display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span onclick="goTab('home')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg class="svg-icon" style="width:16px;height:16px;color:#fff" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </span>
+      <div><div class="pt-title" style="margin:0">设置</div><div class="pt-sub" style="margin:2px 0 0">个性化配置</div></div>
+    </div>
+  </div>
   <div class="set-wrap">
     <div class="set-group">
       <div class="set-row"><span class="sl"><span class="sic"><svg class="svg-icon" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>主题颜色</span>
